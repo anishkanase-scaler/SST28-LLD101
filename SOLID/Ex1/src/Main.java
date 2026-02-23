@@ -9,6 +9,6 @@ public class Main {
 
         System.out.println();
         System.out.println("-- DB DUMP --");
-        System.out.print(TextTable.render3(db));
+        System.out.print(TextTable.render3(db.all()));
     }
 }
