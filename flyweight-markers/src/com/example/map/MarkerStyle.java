@@ -28,10 +28,12 @@ public class MarkerStyle {
     public boolean isFilled() { return filled; }
 
     // BROKEN: setters should go away after immutability refactor
-    public void setShape(String shape) { this.shape = shape; }
-    public void setColor(String color) { this.color = color; }
-    public void setSize(int size) { this.size = size; }
-    public void setFilled(boolean filled) { this.filled = filled; }
+    // public void setShape(String shape) { this.shape = shape; }
+    // public void setColor(String color) { this.color = color; }
+    // public void setSize(int size) { this.size = size; }
+    // public void setFilled(boolean filled) { this.filled = filled; }
+
+    // No setters to prevent modification after creation, keeping the object immutable.
 
     @Override
     public String toString() {
