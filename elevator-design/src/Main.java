@@ -1,69 +1,64 @@
 public class Main {
 
-    public static void main(String[] args) throws InterruptedException {
-        System.out.println("========== ELEVATOR SYSTEM DEMO ==========\n");
+    public static void main(String[] args) {
+        System.out.println("====== LIFT CONTROL SIMULATION ======\n");
 
-        Building building = new Building(10, 2, new ShortestPathScheduler());
-        ElevatorController ctrl = building.getController();
+        ElevatorSystem system = new ElevatorSystem(new ProximityAssignment());
 
-        ctrl.printStatus();
+        ElevatorCab cab1 = new ElevatorCab("Lift-A", 1);
+        ElevatorCab cab2 = new ElevatorCab("Lift-B", 1);
+        system.registerCab(cab1);
+        system.registerCab(cab2);
 
-        // --- Scenario 1: External call from floor 3 going UP ---
-        System.out.println("=== Scenario 1: User on floor 3 calls elevator UP ===");
-        building.getFloorPanel(3).pressUp();
-        ctrl.printStatus();
+        for (int lvl = 1; lvl <= 10; lvl++) {
+            system.registerFloor(new FloorTerminal(lvl, system));
+        }
 
-        // Simulate elevator moving to floor 3
-        for (int i = 0; i < 3; i++) ctrl.stepAll();
-        ctrl.printStatus();
+        system.displayStatus();
 
-        // --- Scenario 2: User inside E1 selects floor 7 ---
-        System.out.println("=== Scenario 2: User boards E1, selects floor 7 ===");
-        building.getCarPanel("E1").pressFloor(7);
-        ctrl.printStatus();
+        System.out.println("--- Call from Floor 3 (Ascending) ---");
+        system.getFloorTerminal(3).activateButton(ControlButton.ASCEND, 75.0);
+        system.displayStatus();
 
-        for (int i = 0; i < 5; i++) ctrl.stepAll();
-        ctrl.printStatus();
+        for (int i = 0; i < 3; i++) system.advanceAllCabs();
+        system.displayStatus();
 
-        // --- Scenario 3: Second user on floor 5 calls DOWN ---
-        System.out.println("=== Scenario 3: User on floor 5 calls elevator DOWN ===");
-        building.getFloorPanel(5).pressDown();
-        ctrl.printStatus();
+        System.out.println("--- Passenger in Lift-A Selects Floor 7 ---");
+        system.getCabTerminal("Lift-A").selectFloor(7, 75.0);
 
-        for (int i = 0; i < 4; i++) ctrl.stepAll();
-        ctrl.printStatus();
+        for (int i = 0; i < 5; i++) system.advanceAllCabs();
+        system.displayStatus();
 
-        // --- Scenario 4: Overweight check ---
-        System.out.println("=== Scenario 4: E2 is overweight (750kg) ===");
-        ctrl.getElevators().get(1).setCurrentWeight(750);
-        building.getCarPanel("E2").pressFloor(9);
-        ctrl.printStatus();
+        System.out.println("--- Call from Floor 5 (Descending) ---");
+        system.getFloorTerminal(5).activateButton(ControlButton.DESCEND, 85.0);
 
-        // Reset weight
-        ctrl.getElevators().get(1).setCurrentWeight(0);
+        for (int i = 0; i < 4; i++) system.advanceAllCabs();
+        system.displayStatus();
 
-        // --- Scenario 5: Maintenance mode ---
-        System.out.println("=== Scenario 5: E1 goes under maintenance ===");
-        ctrl.setMaintenance("E1");
-        building.getFloorPanel(2).pressUp();
-        ctrl.printStatus();
+        System.out.println("--- Overload Prevention Test ---");
+        system.getFloorTerminal(4).activateButton(ControlButton.ASCEND, 800.0);
+        system.displayStatus();
 
-        ctrl.setOperational("E1");
-        ctrl.printStatus();
+        System.out.println("--- Service Suspension ---");
+        cab1.takeOffService();
+        system.getFloorTerminal(2).activateButton(ControlButton.ASCEND, 60.0);
+        system.displayStatus();
 
-        // --- Scenario 6: Alarm (emergency stop) ---
-        System.out.println("=== Scenario 6: Alarm triggered inside E2 ===");
-        building.getCarPanel("E2").pressFloor(8);
-        for (int i = 0; i < 2; i++) ctrl.stepAll();
-        building.getCarPanel("E2").pressAlarm();
-        ctrl.printStatus();
+        System.out.println("--- Service Restoration ---");
+        cab1.restoreService();
+        system.displayStatus();
 
-        // --- Scenario 7: Switch scheduler at runtime ---
-        System.out.println("=== Scenario 7: Switch to FCFS scheduler ===");
-        ctrl.setScheduler(new FCFSScheduler());
-        building.getFloorPanel(6).pressUp();
-        ctrl.printStatus();
+        System.out.println("--- Emergency Situation ---");
+        system.getCabTerminal("Lift-B").selectFloor(8, 50.0);
+        for (int i = 0; i < 2; i++) system.advanceAllCabs();
+        system.getCabTerminal("Lift-B").activateHalt();
+        system.displayStatus();
 
-        System.out.println("========== END ==========");
+        System.out.println("--- Switch Assignment Algorithm ---");
+        system.setAssignmentAlgorithm(new SequentialAssignment());
+        system.getFloorTerminal(6).activateButton(ControlButton.ASCEND, 65.0);
+        system.displayStatus();
+
+        System.out.println("====== SIMULATION END ======");
     }
 }
